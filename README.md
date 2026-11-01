@@ -34,7 +34,6 @@ Detection probability per round is `1 - (1 - f)^k` for a gateway that is wrong o
 
 ```
 README.md              this file
-RUNBOOK.md             step-by-step guide from setup to submission
 demo_code/
   contracts/VeraPQLedger.sol   Solidity contract (audit, stake, reward, slash, expire)
   verapq/                      protocol, Merkle trees, ML-DSA wrapper, simulated and EVM ledgers, FL
@@ -87,8 +86,20 @@ python run_demo.py --ledger evm --rounds 3
 ### Faster post-quantum signatures (optional)
 
 The default back end is pure-Python ML-DSA (`dilithium-py`), which is slow but needs no build step. Installing
-`liboqs` and `liboqs-python` (see `RUNBOOK.md`) is about 500 times faster. Choose with
-`VERAPQ_PQ_BACKEND=pure|liboqs`.
+`liboqs` and `liboqs-python` is about 500 times faster and gives identical protocol results (Linux, WSL or macOS):
+
+```bash
+sudo apt install -y cmake ninja-build build-essential git       # macOS: brew install cmake ninja
+git clone --depth 1 --branch 0.15.0 https://github.com/open-quantum-safe/liboqs
+cmake -S liboqs -B build -GNinja -DBUILD_SHARED_LIBS=ON -DOQS_BUILD_ONLY_LIB=ON \
+  -DOQS_MINIMAL_BUILD="SIG_ml_dsa_44;SIG_ml_dsa_65;SIG_falcon_512;SIG_sphincs_sha2_128f_simple;KEM_ml_kem_768" \
+  -DCMAKE_INSTALL_PREFIX=$HOME/_oqs
+ninja -C build install
+export OQS_INSTALL_PATH=$HOME/_oqs
+pip install liboqs-python
+```
+
+Choose with `VERAPQ_PQ_BACKEND=pure|liboqs`.
 
 ## Measured results (8 clients, trim 2, synthetic data)
 
